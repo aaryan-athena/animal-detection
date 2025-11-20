@@ -17,6 +17,8 @@ ENV/
 
 # Generated datasets
 datasets/animals/
+DEPLOYMENT.md
+requirements-pi.txt
 
 # Logs and temp files
 *.log

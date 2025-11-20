@@ -30,8 +30,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--conf",
         type=float,
-        default=0.35,
+        default=0.4,
         help="Confidence threshold for detections (default: 0.35).",
+    )
+    parser.add_argument(
+        "--deer-conf",
+        type=float,
+        default=0.65,
+        help="Optional higher confidence threshold specifically for deer class to reduce false positives.",
     )
     parser.add_argument(
         "--audio",
@@ -85,6 +91,7 @@ def open_capture(source: str) -> cv2.VideoCapture:
         cap = cv2.VideoCapture(source)
     if not cap.isOpened():
         raise RuntimeError(f"Unable to open video source: {source}")
+    print(f"[INFO] Camera found and opened successfully: {source}")
     return cap
 
 
@@ -170,10 +177,29 @@ def main() -> None:
 
         annotated_frame = frame
         detected = False
+        detection_info = []
         for result in results:
             if result.boxes and len(result.boxes) > 0:
-                detected = True
-                annotated_frame = result.plot()
+                # Filter boxes based on class-specific confidence thresholds
+                valid_boxes = []
+                for box in result.boxes:
+                    conf = float(box.conf[0])
+                    cls = int(box.cls[0])
+                    class_name = result.names[cls] if result.names else f"class_{cls}"
+                    
+                    # Apply higher threshold for deer class if specified
+                    if args.deer_conf is not None and class_name == "deers" and conf < args.deer_conf:
+                        continue
+                    
+                    valid_boxes.append(box)
+                    detection_info.append(f"{class_name} ({conf:.2f})")
+                
+                if valid_boxes:
+                    detected = True
+                    annotated_frame = result.plot()
+
+        if detection_info:
+            print(f"[DETECTION] {', '.join(detection_info)}")
 
         now = time.time()
         if detected and now - last_alert >= args.cooldown:

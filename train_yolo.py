@@ -79,6 +79,17 @@ def main() -> None:
         exist_ok=args.resume,
         resume=args.resume,
         pretrained=True,
+        # Add augmentation to reduce overfitting
+        hsv_h=0.015,  # HSV-Hue augmentation
+        hsv_s=0.7,    # HSV-Saturation augmentation
+        hsv_v=0.4,    # HSV-Value augmentation
+        degrees=10.0,  # Rotation augmentation
+        translate=0.1, # Translation augmentation
+        scale=0.5,     # Scale augmentation
+        flipud=0.0,    # Vertical flip (animals usually upright)
+        fliplr=0.5,    # Horizontal flip
+        mosaic=1.0,    # Mosaic augmentation
+        mixup=0.1,     # Mixup augmentation to reduce overfitting
     )
 
     print(results)
